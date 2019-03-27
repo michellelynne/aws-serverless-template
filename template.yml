@@ -12,8 +12,18 @@ Parameters:
     Description: IAM role to allow AWS CodeDeploy to manage deployment of AWS Lambda functions
   Stage:
     Type: String
-    Description: The name for a project pipeline stage, such as Staging or Prod, for which resources are provisioned and deployed.
-    Default: ''
+    Description: The name for a project pipeline stage, for which resources are provisioned and deployed.
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  ServiceName:
+    Type: String
+    Default: items
+    AllowedValues:
+      - items
+    Description: The service name.
 
 Globals:
   Function:
@@ -24,6 +34,260 @@ Globals:
       Role: !Ref CodeDeployRole
 
 Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-${Stage}-items"
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  ItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ServiceName}-${Stage}-items"
+      Runtime: python3.7
+      Handler: items_lambda.lambda_handler
+      CodeUri: ./build/items
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DynamoDBTable
+      Events:
+        PostResoureApiEndpoint:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: POST
+            RestApiId: !Ref ItemsApi
+        GetResourceApiEndpoint:
+          Type: Api
+          Properties:
+            Path: /items
+            Method: GET
+            RestApiId: !Ref ItemsApi
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Scan
+              Resource: !GetAtt "DynamoDBTable.Arn"
+
+  ItemsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${ServiceName}-${Stage}-items"
+      StageName: !Sub "${StageNameParameter}"
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          title: ROI Tracker - Item
+        basePath: /
+        schemes:
+        - https
+        x-amazon-apigateway-request-validators:
+          basic:
+            validateRequestBody : true
+            validateRequestParameters : true
+        paths:
+          /itemes:
+            post:
+              x-amazon-apigateway-request-validator: basic
+              parameters:
+              - in: body
+                name: Provider
+                required: true
+                schema:
+                  "$ref": "#/definitions/Item"
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: "Successful Operation."
+                  schema:
+                    $ref: "#/definitions/Item"
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/definitions/Item'
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                type: aws_proxy
+            get:
+              tags:
+              - "item"
+              summary: "Gets all items"
+              description: "Returns all items."
+              operationId: "getItems"
+              produces:
+              - "application/json"
+              responses:
+                '200':
+                  description: "Successful Operation."
+                  schema:
+                    type: "array"
+                    items:
+                      $ref: "#/definitions/Item"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: GET
+                type: aws_proxy
+          /itemes/{ID}:
+            get:
+              tags:
+              - "item"
+              summary: "Find item by ID."
+              description: "Returns a single item."
+              operationId: "getItemById"
+              produces:
+              - "application/json"
+              parameters:
+              - name: "ID"
+                in: "path"
+                description: "ID for a item."
+                required: true
+                type: "integer"
+                format: "int64"
+              responses:
+                '200':
+                  description: "Successful operation."
+                '400':
+                  description: "Invalid ID supplied."
+                '404':
+                  description: "Item not found."
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: GET
+                type: aws_proxy
+            put:
+              tags:
+              - "item"
+              summary: "Update an existing item."
+              description: ""
+              operationId: "updateItem"
+              consumes:
+              - "application/json"
+              produces:
+              - "application/json"
+              parameters:
+              - in: "path"
+                name: "ID"
+                description: "ID for a Item."
+                required: true
+                type: "integer"
+                format: "int64"
+              - in: "body"
+                name: "body"
+                description: "Item object that needs to be updated."
+                required: true
+                schema:
+                  $ref: "#/definitions/Item"
+              responses:
+                '200':
+                  description: "Successful operation."
+                  schema:
+                    $ref: "#/definitions/Item"
+                '400':
+                  description: "Invalid ID supplied."
+                '404':
+                  description: "Item not found."
+                '405':
+                  description: "Validation exception."
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: PUT
+                type: aws_proxy
+            delete:
+              tags:
+              - "item"
+              summary: "Update an existing item."
+              description: ""
+              operationId: "updateItem"
+              consumes:
+              - "application/json"
+              produces:
+              - "application/json"
+              parameters:
+              - in: "path"
+                name: "ID"
+                description: "ID for an Item."
+                required: true
+                type: "integer"
+                format: "int64"
+              responses:
+                '200':
+                  description: "Successful operation."
+                  schema:
+                    $ref: "#/definitions/Item"
+                '400':
+                  description: "Invalid ID supplied."
+                '404':
+                  description: "Item not found."
+                '405':
+                  description: "Validation exception."
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: DELETE
+                type: aws_proxy
+        definitions:
+          Item:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+                format: "int64"
+              attribute:
+                type: "string"
+                description: "Any attribute"
+
+Outputs:
+
+    ItemsApi:
+      Description: "Items API Gateway endpoint URL "
+      Value: !Sub "https://${ItemsApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/item"
+
+    ItemsFunction:
+      Description: "Items Lambda Function ARN"
+      Value: !GetAtt TrackerFunction.Arn
+
+
   HelloWorld:
     Type: AWS::Serverless::Function
     Properties:
