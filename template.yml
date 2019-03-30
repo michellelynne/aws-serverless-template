@@ -99,7 +99,32 @@ Resources:
             validateRequestBody : true
             validateRequestParameters : true
         paths:
-          /itemes:
+          /admin:
+            get:
+              tags:
+                - "admin"
+                summary: "Gets admin information. Example of securing an endpoint from customers."
+                description: "Returns admin info."
+                operationId: "getAdmin"
+                produces:
+                  - "application/json"
+                responses:
+                  '200':
+                    description: "Successful Operation."
+                    schema:
+                      type: "array"
+                      items:
+                        $ref: "#/definitions/Admin"
+                x-amazon-apigateway-integration:
+                  responses:
+                    default:
+                      statusCode: 200
+                  uri:
+                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminFunction.Arn}/invocations"
+                  passthroughBehavior: when_no_match
+                  httpMethod: GET
+                  type: aws_proxy
+          /items:
             post:
               x-amazon-apigateway-request-validator: basic
               parameters:
@@ -154,7 +179,7 @@ Resources:
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: aws_proxy
-          /itemes/{ID}:
+          /items/{ID}:
             get:
               tags:
               - "item"
@@ -268,6 +293,15 @@ Resources:
                 type: aws_proxy
         definitions:
           Item:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+                format: "int64"
+              attribute:
+                type: "string"
+                description: "Any attribute"
+          Admin:
             type: "object"
             properties:
               id:
