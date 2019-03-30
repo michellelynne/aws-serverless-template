@@ -90,7 +90,7 @@ Resources:
       DefinitionBody:
         swagger: 2.0
         info:
-          title: ROI Tracker - Item
+          title: Item
         basePath: /
         schemes:
         - https
@@ -126,7 +126,7 @@ Resources:
                   default:
                     statusCode: 200
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ItemsFunction.Arn}/invocations"
                 passthroughBehavior: when_no_match
                 httpMethod: POST
                 type: aws_proxy
@@ -150,7 +150,7 @@ Resources:
                   default:
                     statusCode: 200
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ItemsFunction.Arn}/invocations"
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: aws_proxy
@@ -182,7 +182,7 @@ Resources:
                   default:
                     statusCode: 200
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ItemsFunction.Arn}/invocations"
                 passthroughBehavior: when_no_match
                 httpMethod: GET
                 type: aws_proxy
@@ -225,7 +225,7 @@ Resources:
                   default:
                     statusCode: 200
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ItemsFunction.Arn}/invocations"
                 passthroughBehavior: when_no_match
                 httpMethod: PUT
                 type: aws_proxy
@@ -262,7 +262,7 @@ Resources:
                   default:
                     statusCode: 200
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations"
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ItemsFunction.Arn}/invocations"
                 passthroughBehavior: when_no_match
                 httpMethod: DELETE
                 type: aws_proxy
