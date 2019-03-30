@@ -247,6 +247,8 @@ Resources:
                     type: "array"
                     items:
                       $ref: "#/definitions/Item"
+              security:
+                - cognitoUserPool: []
               x-amazon-apigateway-integration:
                 responses:
                   default:
