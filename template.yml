@@ -285,4 +285,4 @@ Outputs:
 
     ItemsFunction:
       Description: "Items Lambda Function ARN"
-      Value: !GetAtt TrackerFunction.Arn
+      Value: !GetAtt ItemsFunction.Arn
