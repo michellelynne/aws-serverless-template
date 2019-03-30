@@ -86,7 +86,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: !Sub "${ServiceName}-${Stage}-items"
-      StageName: !Sub "${StageNameParameter}"
+      StageName: !Sub "${Stage}"
       DefinitionBody:
         swagger: 2.0
         info:
