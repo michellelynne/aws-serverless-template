@@ -281,7 +281,7 @@ Outputs:
 
     ItemsApi:
       Description: "Items API Gateway endpoint URL "
-      Value: !Sub "https://${ItemsApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/item"
+      Value: !Sub "https://${ItemsApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/item"
 
     ItemsFunction:
       Description: "Items Lambda Function ARN"
