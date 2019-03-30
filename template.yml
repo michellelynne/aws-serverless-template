@@ -98,32 +98,42 @@ Resources:
           basic:
             validateRequestBody : true
             validateRequestParameters : true
+        securityDefinitions:
+          cognitoUserPool:
+            type: apiKey,
+            name: "Authorization"
+            in: header
+            x-amazon-apigateway-authtype: cognito_user_pools
+            x-amazon-apigateway-authorizer:
+              type: cognito_user_pools
+              providerARNs:
+                - arn:aws:cognito-idp:${AWS::Region}:{AWS::AccountId}:userpool/us-east-1_nM3jDJ2ZB
         paths:
           /admin:
             get:
               tags:
                 - "admin"
-                summary: "Gets admin information. Example of securing an endpoint from customers."
-                description: "Returns admin info."
-                operationId: "getAdmin"
-                produces:
-                  - "application/json"
+              summary: "Gets admin information. Example of securing an endpoint from customers."
+              description: "Returns admin info."
+              operationId: "getAdmin"
+              produces:
+                - "application/json"
+              responses:
+                '200':
+                  description: "Successful Operation."
+                  schema:
+                    type: "array"
+                    items:
+                      $ref: "#/definitions/Admin"
+              x-amazon-apigateway-integration:
                 responses:
-                  '200':
-                    description: "Successful Operation."
-                    schema:
-                      type: "array"
-                      items:
-                        $ref: "#/definitions/Admin"
-                x-amazon-apigateway-integration:
-                  responses:
-                    default:
-                      statusCode: 200
-                  uri:
-                    Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminFunction.Arn}/invocations"
-                  passthroughBehavior: when_no_match
-                  httpMethod: GET
-                  type: aws_proxy
+                  default:
+                    statusCode: 200
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminFunction.Arn}/invocations"
+                passthroughBehavior: when_no_match
+                httpMethod: GET
+                type: aws_proxy
           /items:
             post:
               x-amazon-apigateway-request-validator: basic
