@@ -54,7 +54,7 @@ Resources:
       FunctionName: !Sub "${ServiceName}-${Stage}-items"
       Runtime: python3.7
       Handler: items_lambda.lambda_handler
-      CodeUri: build/items
+      CodeUri: src/items/build/
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTable
@@ -89,7 +89,7 @@ Resources:
       FunctionName: !Sub "${ServiceName}-${Stage}-admin"
       Runtime: python3.7
       Handler: items_lambda.lambda_handler
-      CodeUri: build/items
+      CodeUri: src/items/build/
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTable
