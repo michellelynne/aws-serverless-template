@@ -89,7 +89,7 @@ Resources:
       FunctionName: !Sub "${ServiceName}-${Stage}-admin"
       Runtime: python3.7
       Handler: items_lambda.lambda_handler
-      CodeUri: items/build/
+      CodeUri: sitems/build/
       Environment:
         Variables:
           TABLE_NAME: !Ref DynamoDBTable
@@ -391,6 +391,97 @@ Resources:
               attribute:
                 type: "string"
                 description: "Any attribute"
+
+#  CodePipeline:
+#    Type: AWS::CodePipeline::Pipeline
+#    Properties:
+#      ArtifactStore:
+#        ArtifactStore
+#      ArtifactStores:
+#        - ArtifactStoreMap
+#      DisableInboundStageTransitions:
+#        - DisableInboundStageTransitions
+#      Name: String
+#      RestartExecutionOnUpdate: Boolean
+#      RoleArn: "arn:aws:iam::562301145735:role/CodeStarWorker-serverless-temp-ToolChain"
+#      Stages:
+#        - Stages
+#    RoleArn: arn:aws:iam::562301145735:role/CodeStarWorker-serverless-temp-ToolChain
+#    Stages:
+#      - name: Source
+#        actions:
+#        - inputArtifacts: []
+#          name: ApplicationSource
+#          actionTypeId:
+#            category: Source
+#            owner: ThirdParty
+#            version: '1'
+#            provider: GitHub
+#          outputArtifacts:
+#          - name: serverless-temp-SourceArtifact
+#          configuration:
+#            Owner: michellelynne
+#            Repo: aws-serverless-template
+#            PollForSourceChanges: 'false'
+#            Branch: master
+#            OAuthToken: "****"
+#          runOrder: 1
+#      - name: Build
+#        actions:
+#        - inputArtifacts:
+#          - name: serverless-temp-SourceArtifact
+#          name: PackageExport
+#          actionTypeId:
+#            category: Build
+#            owner: AWS
+#            version: '1'
+#            provider: CodeBuild
+#          outputArtifacts:
+#          - name: serverless-temp-BuildArtifact
+#          configuration:
+#            ProjectName: serverless-temp
+#          runOrder: 1
+#      - name: Deploy
+#        actions:
+#        - inputArtifacts:
+#          - name: serverless-temp-BuildArtifact
+#          name: GenerateChangeSet
+#          actionTypeId:
+#            category: Deploy
+#            owner: AWS
+#            version: '1'
+#            provider: CloudFormation
+#          outputArtifacts: []
+#          configuration:
+#            ActionMode: CHANGE_SET_REPLACE
+#            ChangeSetName: pipeline-changeset
+#            RoleArn: arn:aws:iam::562301145735:role/CodeStarWorker-serverless-temp-CloudFormation
+#            Capabilities: CAPABILITY_NAMED_IAM
+#            StackName: awscodestar-serverless-temp-lambda
+#            ParameterOverrides: '{"ProjectId":"serverless-temp", "CodeDeployRole":"arn:aws:iam::562301145735:role/CodeStarWorker-serverless-temp-CodeDeploy"}'
+#            TemplateConfiguration: serverless-temp-BuildArtifact::template-configuration.json
+#            TemplatePath: serverless-temp-BuildArtifact::template-export.yml
+#          runOrder: 1
+#        - inputArtifacts: []
+#          name: ExecuteChangeSet
+#          actionTypeId:
+#            category: Deploy
+#            owner: AWS
+#            version: '1'
+#            provider: CloudFormation
+#          outputArtifacts: []
+#          configuration:
+#            StackName: awscodestar-serverless-temp-lambda
+#            ActionMode: CHANGE_SET_EXECUTE
+#            ChangeSetName: pipeline-changeset
+#          runOrder: 2
+#      artifactStore:
+#        type: S3
+#        location: aws-codestar-us-east-1-562301145735-serverless-temp-pipe
+#      name: serverless-temp-Pipeline
+#      version: 1
+
+
 
 Outputs:
 
