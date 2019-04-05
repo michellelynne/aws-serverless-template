@@ -87,10 +87,7 @@ Resources:
     Properties:
       FunctionName: !Sub "${ServiceName}-${Stage}-admin"
       Runtime: python3.7
-      Handler: items_lambda.lambda_handler
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref DynamoDBTable
+      Handler: admin_lambda.lambda_handler
       Events:
         GetResourceApiEndpoint:
           Type: Api
@@ -98,16 +95,6 @@ Resources:
             Path: /admin
             Method: GET
             RestApiId: !Ref AdminApi
-      Policies:
-        - Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-                - dynamodb:Scan
-              Resource: !GetAtt "DynamoDBTable.Arn"
 
   AdminApi:
     Type: AWS::Serverless::Api
@@ -134,7 +121,7 @@ Resources:
             x-amazon-apigateway-authorizer:
               type: cognito_user_pools
               providerARNs:
-                - arn:aws:cognito-idp:${AWS::Region}:{AWS::AccountId}:userpool/us-east-1_nM3jDJ2ZB
+                - arn:aws:cognito-idp:${AWS::Region}:{AWS::AccountId}:userpool/us-east-1_OOMYiv5kz
         paths:
           /admin:
             get:
@@ -212,6 +199,8 @@ Resources:
                   "$ref": "#/definitions/Item"
               produces:
               - application/json
+              security:
+                - cognitoUserPool: []
               responses:
                 '200':
                   description: "Successful Operation."
