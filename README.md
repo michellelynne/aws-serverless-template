@@ -1,9 +1,9 @@
 AWS Serverless Template
 ==============================================
 
-This project is designed to make it easier to create and deploy serverless applications. 
-It started out with a CodeStar project, but it can be used on it's on. First is some information 
-from AWS, then what I added. This is very much a work in progress and will improve over time.
+This project is designed to make it easier to create and deploy new serverless microservices. 
+It started out with a CodeStar project, but it can be used on it's own. First is some information 
+from AWS, then what I added. This is a work in progress and will improve over time.
 Feel free to add issues/concerns.
 
 What's Here From CodeStar
