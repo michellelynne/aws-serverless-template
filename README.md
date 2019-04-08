@@ -1,10 +1,12 @@
-Welcome to the AWS CodeStar sample web service
+AWS Serverless Template
 ==============================================
 
-This sample code helps get you started with a simple Python web service using
-AWS Lambda and Amazon API Gateway.
+This project is designed to make it easier to create and deploy serverless applications. 
+It started out with a CodeStar project, but it can be used on it's on. First is some information 
+from AWS, then what I added. This is very much a work in progress and will improve over time.
+Feel free to add issues/concerns.
 
-What's Here
+What's Here From CodeStar
 -----------
 
 This sample includes:
@@ -18,16 +20,6 @@ This sample includes:
   Gateway.
 * tests/ - this directory contains unit tests for your application
 * template-configuration.json - this file contains the project ARN with placeholders used for tagging resources with the project ID
-
-What Do I Do Next?
-------------------
-
-If you have checked out a local copy of your repository you can start making changes
-to the sample code.  We suggest making a small change to index.py first, so you can
-see how changes pushed to your project's repository are automatically picked up by your
-project pipeline and deployed to AWS Lambda and Amazon API Gateway. (You can watch the pipeline
-progress on your AWS CodeStar project dashboard.)Once you've seen how that works,
-start developing your own code, and have fun!
 
 To run your tests locally, go to the root directory of the
 sample code and run the `python -m unittest discover tests` command, which
@@ -47,13 +39,6 @@ https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md
 AWS Lambda Developer Guide:
 http://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html
 
-Learn more about AWS CodeStar by reading the user guide, and post questions and
-comments about AWS CodeStar on our forum.
-
-User Guide: http://docs.aws.amazon.com/codestar/latest/userguide/welcome.html
-
-Forum: https://forums.aws.amazon.com/forum.jspa?forumID=248
-
 What Should I Do Before Running My Project in Production?
 ------------------
 
@@ -63,3 +48,17 @@ should also regularly review and apply any available patches or associated secur
 advisories for dependencies used within your application.
 
 Best Practices: https://docs.aws.amazon.com/codestar/latest/userguide/best-practices.html?icmpid=docs_acs_rm_sec
+
+What I Added
+-----------
+
+Deployment directory with sample CloudFormation JSON & README on how to use it.
+Two services, items and admin. Items is an example of how to do CRUD operations on the database.
+Swagger definition of the API.
+Cognito user pools. 
+
+
+TODOs
+-----------
+
+See Issues. 
