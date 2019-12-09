@@ -1,17 +1,16 @@
-import unittest
-import index
+# TODO: Write tests here.
 
 
-class TestHandlerCase(unittest.TestCase):
+class TestItemsApp(object):
 
-    def test_response(self):
-        print("testing response.")
-        result = index.handler(None, None)
-        print(result)
-        self.assertEqual(result['statusCode'], 200)
-        self.assertEqual(result['headers']['Content-Type'], 'application/json')
-        self.assertIn('Hello World', result['body'])
+    @patch.object(app, 'get_handler')
+    def test_lambda_handler_get(self, mock_handler):
+        event = {'httpMethod': 'GET'}
+        app.lambda_handler(event, None)
+        assert mock_handler.call_count == 1
 
-
-if __name__ == '__main__':
-    unittest.main()
+    @patch.object(app, 'post_handler')
+    def test_lambda_handler_post(self, mock_handler):
+        event = {'httpMethod': 'POST'}
+        app.lambda_handler(event, None)
+        assert mock_handler.call_count == 1

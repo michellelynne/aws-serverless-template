@@ -1,0 +1,29 @@
+{
+    "name": "templates-items",
+    "description": "Build for all Templates",
+    "source": {
+        "type": "GITHUB",
+        "location": "https://github.com/michellelynne/aws-serverless-template",
+        "gitCloneDepth": 0, 
+        "buildspec": "items_buildspec.yml",
+        "reportBuildStatus": true, 
+        "insecureSsl": true
+    }, 
+    "artifacts": {
+        "type": "S3",
+        "location": "templates-items",
+        "path": "", 
+        "namespaceType": "NONE", 
+        "name": "", 
+        "packaging": "NONE", 
+        "overrideArtifactName": true, 
+        "encryptionDisabled": true
+    },
+    "environment": {
+        "type": "LINUX_CONTAINER",
+        "image": "aws/codebuild/amazonlinux2-x86_64-standard:1.0",
+        "computeType": "BUILD_GENERAL1_SMALL"
+    }, 
+    "timeoutInMinutes": 60,
+    "badgeEnabled": true
+}

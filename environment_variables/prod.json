@@ -1,0 +1,12 @@
+[
+  {
+    "name": "FRUIT_ID",
+    "value": "kiwi",
+    "type": "PLAINTEXT"
+  },
+    {
+    "name": "STAGE",
+    "value": "prod",
+    "type": "PLAINTEXT"
+  }
+]

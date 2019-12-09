@@ -1,0 +1,252 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  Stage:
+    Type: String
+    Description: The name for a project pipeline stage, for which resources are provisioned and deployed.
+    Default: dev
+  FruitID:
+    Type: String
+    Description: An ID to show how to use different variables for different envs.
+    Default: apples
+  ServiceName:
+    Type: String
+    Default: templates
+    AllowedValues:
+      - templates
+    Description: The service name.
+  ServiceFeature:
+    Type: String
+    Default: items
+    AllowedValues:
+      - items
+    Description: The service feature name.
+
+
+Resources:
+  ItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${ServiceName}-${ServiceFeature}-${Stage}"
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  ItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ServiceName}-${ServiceFeature}-${Stage}"
+      Timeout: 60
+      Runtime: python3.7
+      CodeUri: items/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Sub "${ServiceName}-${ServiceFeature}-${Stage}"
+          SECRET_NAME: !Sub "${ServiceName}/${ServiceFeature}/${Stage}"
+          KMS_ALIAS: !Sub "alias/${ServiceName}-${ServiceFeature}-${Stage}"
+          FRUIT_ID: !Sub "${FruitID}"
+      Events:
+        PostResoureApiEndpoint:
+          Type: Api
+          Properties:
+            Path: /items/
+            Method: POST
+            RestApiId: !Ref ItemsApi
+      Role: !GetAtt ItemsFunctionRole.Arn
+
+  ItemsFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: ['sts:AssumeRole']
+            Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: ItemsFunctionPermissions
+          PolicyDocument: {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+             "Sid": "VisualEditor0",
+             "Effect": "Allow",
+             "Action": [
+                 "kms:Decrypt",
+                 "kms:Encrypt",
+                 "secretsmanager:GetSecretValue",
+                 "secretsmanager:DescribeSecret",
+                 "dynamodb:PutItem",
+                 "dynamodb:DeleteItem",
+                 "dynamodb:GetItem",
+                 "dynamodb:Scan",
+                 "dynamodb:Query",
+                 "dynamodb:UpdateItem",
+                 "dynamodb:GetRecords",
+                 "logs:CreateLogGroup",
+                 "logs:CreateLogStream",
+                 "logs:PutLogEvents"
+               ],
+             "Resource": "*"
+            }
+          ]
+        }
+
+  ItemsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "Run a rule once a week."
+      ScheduleExpression: "rate(7 days)"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn:
+            Fn::GetAtt:
+              - "ItemsFunction"
+              - "Arn"
+          Id: "TargetFunctionV1"
+
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: "ItemsFunction"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn:
+        Fn::GetAtt:
+          - "ItemsRule"
+          - "Arn"
+
+  ItemsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${ServiceName}-${ServiceFeature}-${Stage}"
+      StageName: !Sub "${Stage}"
+      DefinitionBody:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: !Join [ '', [ 's3://', !Ref ServiceName, '-', !Ref ServiceFeature, '-', !Ref Stage, '/items_open_api.yaml'  ] ]
+
+  UsagePlanBasic:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+        - ApiId: !Ref 'ItemsApi'
+          Stage: !Ref Stage
+      Description: Service access plan
+      Quota:
+        Limit: 3600
+        Period: DAY
+      UsagePlanName: Basic_Plan
+
+  BasicApiKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    Properties:
+      Name: ItemsAPIKey
+      Description: Key for accessing services.
+      Enabled: 'true'
+      StageKeys:
+        - RestApiId: !Ref 'ItemsApi'
+          StageName: !Ref Stage
+
+  BasicUsagePlanKey:
+    Type: 'AWS::ApiGateway::UsagePlanKey'
+    Properties:
+      KeyId: !Ref BasicApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlanBasic
+
+  BasicKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "A basic CMK"
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-basic-1"
+        Statement:
+         -
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Join
+                - ''
+                - - 'arn:aws:iam::'
+                  - !Ref 'AWS::AccountId'
+                  - ':role/service-role/codebuild-templates-service-role'
+            Action: "kms:*"
+            Resource: "*"
+         -
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Join
+                - ''
+                - - 'arn:aws:iam::'
+                  - !Ref 'AWS::AccountId'
+                  - ':root'
+            Action: "kms:*"
+            Resource: "*"
+         -
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Join
+                - ''
+                - - 'arn:aws:iam::'
+                  - !Ref 'AWS::AccountId'
+                  - ':user/michelle.brenner'
+            Action: "kms:*"
+            Resource: "*"
+         -
+            Sid: "Allow use of key"
+            Effect: "Allow"
+            Principal:
+              AWS: !GetAtt ItemsFunctionRole.Arn
+            Action:
+              - "kms:DescribeKey"
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey"
+              - "kms:GenerateDataKeyWithoutPlaintext"
+            Resource: "*"
+
+  BasicKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${ServiceName}-${ServiceFeature}-${Stage}"
+      TargetKeyId:
+        Ref: BasicKMSKey
+
+  ItemSecrets:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: !Sub "${ServiceName}/${ServiceFeature}/${Stage}"
+      Description: "Creating a secret to store all secrets."
+      SecretString: '{"a_secret":"UPDATE_ME"}'
+
+Outputs:
+
+    ItemsApi:
+      Description: "Items API Gateway endpoint URL "
+      Value: !Sub "https://${ItemsApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/items"
+
+    ItemsFunction:
+      Description: "Items Lambda Function ARN"
+      Value: !GetAtt ItemsFunction.Arn
+
+    ItemsFunctionRole:
+      Description: "Implicit IAM Role created for Items function"
+      Value: !GetAtt ItemsFunctionRole.Arn

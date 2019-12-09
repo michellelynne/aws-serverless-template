@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    SERVICE_NAME: 'templates'
+    SERVICE_FEATURE: 'items'
+    STAGE: 'dev'
+    FRUIT_ID: 'grapes'
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+  pre_build:
+    commands:
+      - pip install -r items/requirements-dev.txt
+      - TABLE_NAME='test' pytest tests
+      - aws s3 mb s3://$SERVICE_NAME-$SERVICE_FEATURE-$STAGE
+      - aws s3 cp items/items_open_api.yaml s3://$SERVICE_NAME-$SERVICE_FEATURE-$STAGE/
+  build:
+    commands:
+      - sam build --template items_template.yaml --build-dir .aws-sam/build
+      - sam package --output-template-file packaged.yaml --s3-bucket $SERVICE_NAME-$SERVICE_FEATURE-$STAGE
+      - sam deploy  --template-file packaged.yaml --stack-name $SERVICE_NAME-$SERVICE_FEATURE-$STAGE --capabilities CAPABILITY_IAM --parameter-overrides Stage=$STAGE FruitID=$FRUIT_ID SeviceName=$SERVICE_NAME
+artifacts:
+  type: zip
+  files:
+    - items_template.yaml
+    - packaged.yaml
