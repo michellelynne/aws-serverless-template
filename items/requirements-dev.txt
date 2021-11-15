@@ -2,5 +2,5 @@
 aws-sam-cli==0.16.0
 boto3==1.9.151
 mock==1.0.1
-pip==19.2.3
+pip==21.1
 pytest>=2.8.5
